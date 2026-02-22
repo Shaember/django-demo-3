@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}Удаление товара{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.1);">
+    <h2>Удаление товара</h2>
+    <p>Вы уверены, что хотите удалить товар <strong>{{ object.name }}</strong>?</p>
+    
+    <form method="post">
+        {% csrf_token %}
+        <div style="display: flex; gap: 15px; margin-top: 20px;">
+            <button type="submit" style="padding: 10px 20px; background-color: #e74c3c; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Да, удалить</button>
+            <a href="{% url 'shop:product_list' %}" style="padding: 10px 20px; background-color: #7f8c8d; color: #fff; text-decoration: none; border-radius: 4px;">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

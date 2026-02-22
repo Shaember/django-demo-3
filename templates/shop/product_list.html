@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Товары{% endblock %}
+
+{% block content %}
+<style>
+    .product-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+    .product-card {
+        background-color: #fff;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        display: flex;
+        flex-direction: column;
+    }
+    .product-image {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+        margin-bottom: 10px;
+        background-color: #eee; /* placeholder */
+    }
+    .product-card.high-discount {
+        background-color: #2E8B57;
+        color: white;
+    }
+    .product-card.out-of-stock {
+        background-color: lightblue;
+    }
+    .price-strike {
+        text-decoration: line-through;
+        color: red;
+        margin-right: 10px;
+    }
+    .price-final {
+        font-weight: bold;
+        color: black;
+    }
+    .product-card.high-discount .price-final {
+        color: white; /* contrast */
+    }
+</style>
+
+<h2>Список товаров</h2>
+
+{% if user.role == 'admin' or user.role == 'manager' %}
+<div style="background-color: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 0 5px rgba(0,0,0,0.1);">
+    <form method="get" id="filter-form" style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+        <div>
+            <label style="display:block; margin-bottom: 5px;">Поиск:</label>
+            <input type="text" name="search" value="{{ request.GET.search }}" oninput="clearTimeout(window.searchTimeout); window.searchTimeout = setTimeout(() => document.getElementById('filter-form').submit(), 500);" style="padding: 5px;">
+        </div>
+        <div>
+            <label style="display:block; margin-bottom: 5px;">Поставщик:</label>
+            <select name="supplier" onchange="document.getElementById('filter-form').submit()" style="padding: 6px;">
+                <option value="">Все поставщики</option>
+                <!-- В идеале мы бы прокинули список поставщиков через View, но пока используем django-filter form -->
+                {{ filter.form.supplier }}
+            </select>
+        </div>
+        <div>
+            <label style="display:block; margin-bottom: 5px;">Сортировка:</label>
+            {{ filter.form.ordering }}
+        </div>
+        <script>
+            // Привяжем onchange для селектов django-filter
+            document.querySelectorAll('#filter-form select').forEach(s => s.setAttribute('onchange', "document.getElementById('filter-form').submit()"));
+        </script>
+        {% if user.role == 'admin' %}
+        <div style="margin-left: auto;">
+            <a href="{% url 'shop:product_create' %}" style="padding: 10px 15px; background-color: #3498db; color: #fff; text-decoration: none; border-radius: 4px;">Добавить товар</a>
+        </div>
+        {% endif %}
+    </form>
+</div>
+{% endif %}
+
+<div class="product-list">
+    {% for product in products %}
+    {% if product.stock == 0 %}
+        <div class="product-card out-of-stock">
+    {% elif product.discount > 15 %}
+        <div class="product-card high-discount">
+    {% else %}
+        <div class="product-card">
+    {% endif %}
+
+        {% if product.photo %}
+            <img src="{{ product.photo.url }}" class="product-image" alt="{{ product.name }}">
+        {% else %}
+            <!-- Заглушка, если фото нет. В ТЗ сказано вставить picture.png из ресурсов -->
+            <img src="/static/picture.png" class="product-image" alt="Заглушка">
+        {% endif %}
+
+        <h3 style="margin-top: 0; font-size: 1.1em;">{{ product.name }}</h3>
+        <p style="margin: 5px 0;"><strong>Категория:</strong> {{ product.category }}</p>
+        <p style="margin: 5px 0;"><strong>Производитель:</strong> {{ product.manufacturer }}</p>
+        <p style="margin: 5px 0;"><strong>Поставщик:</strong> {{ product.supplier }}</p>
+        <p style="margin: 5px 0;"><strong>Описание:</strong> {{ product.description|truncatewords:20 }}</p>
+        
+        <div style="margin-top: auto;">
+            <p style="margin: 5px 0;">Остаток: {{ product.stock }} {{ product.unit }}</p>
+            {% if product.discount > 0 %}
+                <div>
+                   <span class="price-strike">{{ product.price }} руб.</span>
+                   <span class="price-final" style="color: black;">{{ product.discounted_price|floatformat:2 }} руб.</span>
+                </div>
+            {% else %}
+                <div class="price-final" style="color: black;">{{ product.price }} руб.</div>
+            {% endif %}
+        </div>
+        
+        {% if user.role == 'admin' %}
+        <div style="margin-top: 10px; display: flex; gap: 10px;">
+            <a href="{% url 'shop:product_update' product.sku %}" style="padding: 5px 10px; background-color: #f39c12; color: #fff; text-decoration: none; border-radius: 4px; font-size: 0.9em;">Изменить</a>
+            <a href="{% url 'shop:product_delete' product.sku %}" style="padding: 5px 10px; background-color: #e74c3c; color: #fff; text-decoration: none; border-radius: 4px; font-size: 0.9em;">Удалить</a>
+        </div>
+        {% endif %}
+    </div>
+    {% empty %}
+    <p>Товары не найдены.</p>
+    {% endfor %}
+</div>
+{% endblock %}

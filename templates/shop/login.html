@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Авторизация{% endblock %}
+
+{% block content %}
+<div style="max-width: 400px; margin: 50px auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+    <h2 style="text-align: center; margin-top: 0;">Авторизация</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div style="margin-bottom: 15px;">
+            <label for="username" style="display: block; margin-bottom: 5px;">Логин (Username):</label>
+            <input type="text" name="username" id="username" style="width: 100%; padding: 8px; box-sizing: border-box;" required autofocus>
+        </div>
+        <div style="margin-bottom: 15px;">
+            <label for="password" style="display: block; margin-bottom: 5px;">Пароль:</label>
+            <input type="password" name="password" id="password" style="width: 100%; padding: 8px; box-sizing: border-box;" required>
+        </div>
+        <button type="submit" style="width: 100%; padding: 10px; background-color: #2c3e50; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">Войти</button>
+    </form>
+    
+    <div style="text-align: center; margin-top: 20px;">
+        <p>Или продолжить без авторизации:</p>
+        <a href="{% url 'shop:guest_login' %}" style="display: inline-block; padding: 10px 20px; background-color: #7f8c8d; color: #fff; text-decoration: none; border-radius: 4px;">Войти как гость</a>
+    </div>
+
+    {% if form.errors %}
+    <div style="color: red; margin-top: 15px; text-align: center;">
+        Неверный логин или пароль.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
